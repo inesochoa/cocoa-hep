@@ -37,6 +37,9 @@ public:
     std::vector<int> ind_phi;        //index of cell in phi direction of Particle in each layer
     std::vector<double> Rprime_to_closest_topoclusters;
     std::vector<int> index_of_closest_topoclusters;
+    std::vector<double> Rprime_to_closest_jet;
+    std::vector<int> index_of_closest_jet;
+    std::vector<int> index_of_matched_jet;
     double a0;
     double z0;
     double initX;

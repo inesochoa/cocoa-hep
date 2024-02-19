@@ -140,7 +140,7 @@ void EventAction::EndOfEventAction(const G4Event *evt)
 										cells_data_low.Cells_in_topoclusters, pion_info, config_var.low_resolution,
 										config_var.particle_flow, config_var.Type_of_running);
 		pion_info.fill_var();
-		tracks_list_low.Fill_perigee_var();
+		tracks_list_low.Fill_perigee_var("PFlow_debug");
 	}
 	else if (config_var.Type_of_running == "Standard")
 	{
@@ -158,7 +158,7 @@ void EventAction::EndOfEventAction(const G4Event *evt)
 			if ( config_var.doPFlow )
 			    Particle_flow_func pflow(tracks_list_low.Tracks_list, topo_clusts.topo_clusts_list, cells_data_low.Cells_in_topoclusters, pflow_obj.pflow_list, config_var.low_resolution, config_var.particle_flow);
 
-			tracks_list_low.Fill_perigee_var();
+			tracks_list_low.Fill_perigee_var("Standard");
 			cells_data_low.fill_cell_var();
 			cells_data_high.fill_cell_var();
 			if ( config_var.doPFlow )
@@ -207,15 +207,15 @@ void EventAction::EndOfEventAction(const G4Event *evt)
 			Topo_clust_func clustering(cells_data_low.fCell_array, config_var.low_resolution, config_var.topological_clustering, "Standard");
 			clustering.topoclustering(topo_clusts.topo_clusts_list);
 			cells_data_low.fill_cells_in_topoclusters();
-			topo_clusts.fill_topo_var();
+			if ( config_var.Save_topoclusters ) topo_clusts.fill_topo_var();
 
 			if ( config_var.doPFlow )
 			    Particle_flow_func pflow(tracks_list_low.Tracks_list, topo_clusts.topo_clusts_list, cells_data_low.Cells_in_topoclusters, pflow_obj.pflow_list, config_var.low_resolution, config_var.particle_flow);
-			tracks_list_low.Fill_perigee_var();
-			cells_data_low.fill_cell_var();
+			if ( config_var.Save_tracks) tracks_list_low.Fill_perigee_var("Standard");
+			if ( config_var.Save_cells ) cells_data_low.fill_cell_var();
 			if ( config_var.doPFlow )
 			    pflow_obj.fill_cell_var();
-			trajectories.fill_var();
+			if ( config_var.Save_particles) trajectories.fill_var();
 			if ( config_var.doSuperclustering )
 			{
 				Superclustering superclusters(tracks_list_low.Tracks_list, topo_clusts.topo_clusts_list, cells_data_low.Cells_in_topoclusters, superclustering_data.super_list);
@@ -223,8 +223,7 @@ void EventAction::EndOfEventAction(const G4Event *evt)
 			}
 
 			std::vector<float> _particle_dep_energies;
-			GraphConstructor graph_construct(cells_data_low.Cells_in_topoclusters, tracks_list_low.Tracks_list, trajectories.particle_to_track, graph_obj, &_particle_dep_energies);
-
+			if ( config_var.Save_graph ) GraphConstructor graph_construct(cells_data_low.Cells_in_topoclusters, tracks_list_low.Tracks_list, trajectories.particle_to_track, graph_obj, &_particle_dep_energies);
 			trajectories.SetParticleDepEnergy( _particle_dep_energies );
 
 			Jet_Builder_func jets_build;
@@ -234,14 +233,21 @@ void EventAction::EndOfEventAction(const G4Event *evt)
 			    pflow_jets_obj.fill_cell_var();
 			    jets_build.reset();
 			}
-			trajectories.make_pseudo_jet_particles();
-			jets_build.build_jets(trajectories.jets_objects, true_jets_obj, config_var.jet_parameter);
-			true_jets_obj.fill_cell_var();
-			jets_build.reset();
-			topo_clusts.make_pseudo_jet_particles();
-			jets_build.build_jets(topo_clusts.jets_objects, topo_jets_obj, config_var.jet_parameter);
-			topo_jets_obj.fill_cell_var();
-			jets_build.reset();
+
+			if ( config_var.Save_true_jets ) {
+				trajectories.make_pseudo_jet_particles();
+				jets_build.build_jets(trajectories.jets_objects, true_jets_obj, config_var.jet_parameter);
+				true_jets_obj.fill_cell_var();
+				jets_build.reset();
+			}
+			if ( config_var.Save_topo_jets ) {
+				topo_clusts.make_pseudo_jet_particles();
+				jets_build.build_jets(topo_clusts.jets_objects, topo_jets_obj, config_var.jet_parameter);
+				topo_jets_obj.fill_cell_var();
+				topo_jets_obj.track_match_to_jet(tracks_list_low.Tracks_list, 0.4);
+				if ( config_var.Save_tracks) tracks_list_low.Fill_jetindex();
+				jets_build.reset();
+			}
 		}
 	}
 

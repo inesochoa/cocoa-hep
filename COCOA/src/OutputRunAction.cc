@@ -107,11 +107,11 @@ void OutputRunAction::BeginOfRunAction(const G4Run *run)
 	if (config_var.Type_of_running == "Standard")
 	{
 		Particle_flow_data &pflow_obj = Particle_flow_data::GetInstance();
-		cells_low.set_tree_branches(outTree_low);
-		track_list_low.set_tree_branches(outTree_low, config_var.low_resolution.kNLayers);
-		truth_record_graph.set_tree_branches(outTree_low);
-		final_state_particle.set_tree_branches(outTree_low);
-		topo_clusts.set_tree_branches(outTree_low);
+		if ( config_var.Save_cells) cells_low.set_tree_branches(outTree_low);
+		if ( config_var.Save_tracks) track_list_low.set_tree_branches(outTree_low, config_var.low_resolution.kNLayers, config_var.Type_of_running);
+		if ( config_var.Save_truth_particle_graph) truth_record_graph.set_tree_branches(outTree_low);
+		if ( config_var.Save_particles) final_state_particle.set_tree_branches(outTree_low);
+		if ( config_var.Save_topoclusters) topo_clusts.set_tree_branches(outTree_low);
 		if ( config_var.doPFlow ) {
 		    pflow_obj.set_tree_branches(outTree_low);
 		    pflow_jets_obj.set_tree_branches(outTree_low);
@@ -119,9 +119,9 @@ void OutputRunAction::BeginOfRunAction(const G4Run *run)
 		if ( config_var.doSuperclustering) {
 		    superclustering_data.set_tree_branches(outTree_low);
 		}
-		graph_obj.set_tree_branches(outTree_low);
-		true_jets_obj.set_tree_branches(outTree_low);
-		topo_jets_obj.set_tree_branches(outTree_low);
+		if ( config_var.Save_graph) graph_obj.set_tree_branches(outTree_low);
+		if ( config_var.Save_true_jets) true_jets_obj.set_tree_branches(outTree_low);
+		if ( config_var.Save_topo_jets) topo_jets_obj.set_tree_branches(outTree_low);
 		if (config_var.Use_high_granularity)
 		{
 			outTree_high = new TTree("High_Tree", "High_Tree");
@@ -154,7 +154,7 @@ void OutputRunAction::BeginOfRunAction(const G4Run *run)
 		Debug_Particle_Flow_data &pion_info = Debug_Particle_Flow_data::GetInstance();
 		pion_info.set_tree_branches(outTree_low, config_var.Type_of_running);
 		if (config_var.Type_of_running == "PFlow_debug_E_p_template")
-			track_list_low.set_tree_branches(outTree_low, config_var.low_resolution.kNLayers);//Todo add option to save less for template 
+			track_list_low.set_tree_branches(outTree_low, config_var.low_resolution.kNLayers, config_var.Type_of_running);//Todo add option to save less for template 
 	}
 
 }

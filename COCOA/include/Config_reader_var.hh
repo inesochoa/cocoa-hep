@@ -94,6 +94,16 @@ public:
     std::string Macro_file_path;
     std::string Type_of_running;
     bool Save_truth_particle_graph;
+    bool Save_cells;
+    bool Save_topoclusters;
+    bool Save_true_jets;
+    bool Save_topo_jets;
+    bool Save_graph;
+    bool Save_particles;
+    bool Save_tracks;
+    bool Save_trackextrap;
+    bool Save_convelectrons;
+    
     bool Use_high_granularity;
     bool Skip_unuseable_tracks;
     bool check_geometry_overlap;

@@ -8,17 +8,32 @@ Tracks_data::Tracks_data()
     Tracks_list.clear();
 }
 
-void Tracks_data::Fill_perigee_var()
+void Tracks_data::Fill_jetindex()
+{
+    if (Tracks_list.size()!=0)
+    {
+        int nTracks = Tracks_list.size();
+        for (int track = 0; track < nTracks; track++)
+        {
+            track_dR_jetIndex.push_back(Tracks_list.at(track).index_of_matched_jet.at(0));
+        }
+    }
+}
+
+void Tracks_data::Fill_perigee_var(std::string Type_of_running)
 {
     Particle_flow_data &pflow_pbj = Particle_flow_data::GetInstance();
+    Config_reader_var &config_var = Config_reader_var::GetInstance();
     int size_pflow = pflow_pbj.pflow_list.size();
     if (Tracks_list.size()!=0)
     {
-        for (int ilay = 0; ilay < nLayers; ilay++)
-        {
-            track_extrap_branches["track_x_layer_" + std::to_string(ilay)]->clear();
-            track_extrap_branches["track_y_layer_" + std::to_string(ilay)]->clear();
-            track_extrap_branches["track_z_layer_" + std::to_string(ilay)]->clear();
+        if (Type_of_running != "PFlow_debug_E_p_template" && config_var.Save_trackextrap ) {
+            for (int ilay = 0; ilay < nLayers; ilay++)
+            {
+                track_extrap_branches["track_x_layer_" + std::to_string(ilay)]->clear();
+                track_extrap_branches["track_y_layer_" + std::to_string(ilay)]->clear();
+                track_extrap_branches["track_z_layer_" + std::to_string(ilay)]->clear();
+            }
         }
         int nTracks = Tracks_list.size();
         for (int track = 0; track < nTracks; track++)
@@ -34,11 +49,13 @@ void Tracks_data::Fill_perigee_var()
             track_reconstructed.push_back(1*Tracks_list.at(track).Is_track_reconstracted);
             track_accepted.push_back(1*Tracks_list.at(track).Is_reach_calorimeter*Tracks_list.at(track).Is_inside_R);
 	        track_LHED.push_back( Tracks_list.at(track).GetLHED() );
-            for (int ilay = 0; ilay < nLayers; ilay++)
-            {
-                track_extrap_branches["track_x_layer_" + std::to_string(ilay)]->push_back(Tracks_list.at(track).x_mid_layer.at(ilay));
-                track_extrap_branches["track_y_layer_" + std::to_string(ilay)]->push_back(Tracks_list.at(track).y_mid_layer.at(ilay));
-                track_extrap_branches["track_z_layer_" + std::to_string(ilay)]->push_back(Tracks_list.at(track).z_mid_layer.at(ilay));
+            if (Type_of_running != "PFlow_debug_E_p_template" && config_var.Save_trackextrap ) {
+                for (int ilay = 0; ilay < nLayers; ilay++)
+                {
+                    track_extrap_branches["track_x_layer_" + std::to_string(ilay)]->push_back(Tracks_list.at(track).x_mid_layer.at(ilay));
+                    track_extrap_branches["track_y_layer_" + std::to_string(ilay)]->push_back(Tracks_list.at(track).y_mid_layer.at(ilay));
+                    track_extrap_branches["track_z_layer_" + std::to_string(ilay)]->push_back(Tracks_list.at(track).z_mid_layer.at(ilay));
+                }
             }
         }
         for (int ipflow = 0; ipflow < size_pflow; ipflow++)
@@ -54,6 +71,7 @@ void Tracks_data::Fill_perigee_var()
 void Tracks_data::set_tree_branches(TTree *outTree, int NLayers, std::string Type_of_running)
 {
     nLayers = NLayers;
+    Config_reader_var &config_var = Config_reader_var::GetInstance();
     if (Type_of_running != "PFlow_debug_E_p_template")
     {
         outTree->Branch("track_pdgid"           , "vector<int>", &TrckPDGID        );
@@ -65,21 +83,22 @@ void Tracks_data::set_tree_branches(TTree *outTree, int NLayers, std::string Typ
         outTree->Branch("track_qoverp"          , "vector<float>", &PerigeeQ_P  );
         outTree->Branch("track_reconstructed"   , "vector<int>", &track_reconstructed);
         outTree->Branch("track_in_acceptance"   , "vector<int>", &track_accepted);
+        outTree->Branch("track_dR_jetIndex"   , "vector<int>", &track_dR_jetIndex); //TODO add protection //inesochoa
 
-	    Config_reader_var &config_var = Config_reader_var::GetInstance();
         if ( config_var.doPFlow )
         {
             outTree->Branch("track_pflow_object_idx", "vector<int>", &track_pflow_object_idx);
             outTree->Branch("track_lhed"            , "vector<int>", &track_LHED );
         }
     }
-    for (int i = 0; i < nLayers; i++)
+    if (Type_of_running != "PFlow_debug_E_p_template" && config_var.Save_trackextrap )
     {
-        std::vector<float>* temp_x_vec = new std::vector<float>();
-        std::vector<float>* temp_y_vec = new std::vector<float>();
-        std::vector<float>* temp_z_vec = new std::vector<float>();
-        if (Type_of_running != "PFlow_debug_E_p_template")
+        for (int i = 0; i < nLayers; i++)
         {
+            std::vector<float>* temp_x_vec = new std::vector<float>();
+            std::vector<float>* temp_y_vec = new std::vector<float>();
+            std::vector<float>* temp_z_vec = new std::vector<float>();
+            
             track_extrap_branches["track_x_layer_" + std::to_string(i)] = temp_x_vec;
             track_extrap_branches["track_y_layer_" + std::to_string(i)] = temp_y_vec;
             track_extrap_branches["track_z_layer_" + std::to_string(i)] = temp_z_vec;
@@ -87,7 +106,6 @@ void Tracks_data::set_tree_branches(TTree *outTree, int NLayers, std::string Typ
             outTree->Branch(TString("track_y_layer_" + std::to_string(i)), "vector<float>", temp_y_vec);
             outTree->Branch(TString("track_z_layer_" + std::to_string(i)), "vector<float>", temp_z_vec);
         }
-
     }
 
 }
@@ -106,6 +124,7 @@ void Tracks_data::Clear()
     TrckPDGID.clear();
     TrckPosInRealList.clear();
     track_LHED.clear();
+    track_dR_jetIndex.clear();
 
     //  track_extrap_branches.clear();
 }

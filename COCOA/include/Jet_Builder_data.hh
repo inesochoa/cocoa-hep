@@ -6,6 +6,7 @@
 
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
+#include "Track_var.hh"
 
 class Jet_Builder_data
 {
@@ -24,6 +25,8 @@ public:
     void        set_tree_branches(TTree *outTree);
     inline void set_n_constituents( unsigned int n ) { n_constituents = n; }
     void        fill_cell_var();
+    static float R_distance_func(float phi_1, float eta_1, float phi_2, float eta_2);
+    void track_match_to_jet(std::vector<Track_struct> &track_list, float radius);
     
     static Jet_Builder_data &Get_instance_pflow()
     {

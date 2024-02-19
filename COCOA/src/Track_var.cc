@@ -39,6 +39,9 @@ Track_struct::Track_struct(int Pdgcode, int NFinalStateParticles, double Energy,
     ind_phi.clear();
     index_of_closest_topoclusters.clear();
     Rprime_to_closest_topoclusters.clear();
+    index_of_closest_jet.clear();
+    Rprime_to_closest_jet.clear();
+    index_of_matched_jet.clear();
 
     rho = 0;
     IsProductInsideRadius();

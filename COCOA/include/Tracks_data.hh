@@ -16,7 +16,8 @@ class Tracks_data
         // ~Tracks_data();
         void Clear();
         void set_tree_branches(TTree *outTree, int NLayers, std::string Type_of_running = "");
-        void Fill_perigee_var();
+        void Fill_perigee_var(std::string Type_of_running);
+        void Fill_jetindex();
         static Tracks_data &GetHigh() 
         {
             static Tracks_data track_list_high; 
@@ -40,6 +41,7 @@ class Tracks_data
         std::vector <int>   TrckPosInRealList;
         std::map<TString, std::vector<float>* > track_extrap_branches;
         std::vector<int>    track_LHED;
+        std::vector<int>    track_dR_jetIndex;
 
     private:
         Config_reader_var& config_json_var = Config_reader_var::GetInstance();

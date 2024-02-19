@@ -13,10 +13,20 @@ Config_reader_func::Config_reader_func(std::string path, Config_reader_var &conf
     config_var.Output_file_path = configs["Output_file_path"].asString();
     config_var.Type_of_running = configs["Type_of_running"].asString();
     config_var.Macro_file_path = configs["Macro_file_path"].asString();
-    config_var.Save_truth_particle_graph = configs["Save_truth_particle_graph"].asBool();
     config_var.Use_high_granularity = configs["Use_high_granularity"].asBool();
     config_var.Skip_unuseable_tracks = configs["Skip_unuseable_tracks"].asBool();
     config_var.doSuperclustering = configs.get( "Do_superclustering", false ).asBool();
+
+    config_var.Save_truth_particle_graph = configs.get("Save_truth_particle_graph", true).asBool();
+    config_var.Save_cells = configs.get("Save_cells", true).asBool();
+    config_var.Save_topoclusters = configs.get("Save_topoclusters", true).asBool();
+    config_var.Save_true_jets = configs.get("Save_true_jets", true).asBool();
+    config_var.Save_topo_jets = configs.get("Save_topo_jets", true).asBool();
+    config_var.Save_graph = configs.get("Save_graph", true).asBool();
+    config_var.Save_particles = configs.get("Save_particles", true).asBool();
+    config_var.Save_tracks = configs.get("Save_tracks", true).asBool();
+    config_var.Save_trackextrap = configs.get("Save_trackextrap", true).asBool();
+    config_var.Save_convelectrons = configs.get("Save_convelectrons", true).asBool();
 
     config_var.r_inn_calo = configs["Geometry_definition"]["Inner_calorimeter_layer"].asDouble();
     config_var.Layer_gap = configs["Geometry_definition"]["Layer_gap"].asDouble();

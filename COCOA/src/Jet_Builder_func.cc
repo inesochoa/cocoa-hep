@@ -16,6 +16,7 @@ void Jet_Builder_func::reset()
 {
 	delete cs;
 }
+
 fastjet::JetAlgorithm Jet_Builder_func::algorithm(std::string algo)
 {
 	fastjet::JetAlgorithm Algorithm = fastjet::kt_algorithm;

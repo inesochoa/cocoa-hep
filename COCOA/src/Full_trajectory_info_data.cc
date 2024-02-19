@@ -63,6 +63,8 @@ int Full_trajectory_info_data::DeltaR_iso(float px, float py, float pz ,size_t i
 }
 
 void Full_trajectory_info_data::fill_var(){
+    Config_reader_var &config_var = Config_reader_var::GetInstance();
+
     int size_trajectories_list = fAllTrajectoryInfo.size();
     for (int iparticle = 0; iparticle < size_trajectories_list; iparticle++)
     {
@@ -101,15 +103,17 @@ void Full_trajectory_info_data::fill_var(){
         particle_to_track.at(trackParticleId) = itrack;	
     }
     
-    for( const FullTrajectoryInfo& conv_el_tr : fAllConvElectrons ) {
-        conv_el_fPrimaryPhotonIndex.push_back( conv_el_tr.fParentID );
-        conv_el_q.push_back( conv_el_tr.fPDGCharge );
-        conv_el_px.push_back( conv_el_tr.fMomentum.x() );
-        conv_el_py.push_back( conv_el_tr.fMomentum.y() );
-        conv_el_pz.push_back( conv_el_tr.fMomentum.z() );
-        conv_el_prod_x.push_back( conv_el_tr.fVertexPosition.x() );
-        conv_el_prod_y.push_back( conv_el_tr.fVertexPosition.y() );
-        conv_el_prod_z.push_back( conv_el_tr.fVertexPosition.z() );
+    if ( config_var.Save_convelectrons ) {
+        for( const FullTrajectoryInfo& conv_el_tr : fAllConvElectrons ) {
+            conv_el_fPrimaryPhotonIndex.push_back( conv_el_tr.fParentID );
+            conv_el_q.push_back( conv_el_tr.fPDGCharge );
+            conv_el_px.push_back( conv_el_tr.fMomentum.x() );
+            conv_el_py.push_back( conv_el_tr.fMomentum.y() );
+            conv_el_pz.push_back( conv_el_tr.fMomentum.z() );
+            conv_el_prod_x.push_back( conv_el_tr.fVertexPosition.x() );
+            conv_el_prod_y.push_back( conv_el_tr.fVertexPosition.y() );
+            conv_el_prod_z.push_back( conv_el_tr.fVertexPosition.z() );
+        }
     }
     
 }
@@ -147,7 +151,7 @@ void Full_trajectory_info_data::clear()
 }
 
 void Full_trajectory_info_data::set_tree_branches(TTree *outTree)
-{
+{   
     outTree->Branch("particle_pdgid"   ,           "vector<int>", &particle_pdgid);
     outTree->Branch("particle_isIso"   ,           "vector<int>", &particleisIso);
     outTree->Branch("particle_pt"  ,               "vector<float>", &particle_pt);
@@ -164,14 +168,17 @@ void Full_trajectory_info_data::set_tree_branches(TTree *outTree)
     outTree->Branch("particle_phi_extrap_its",     "vector<float>", &idExtrapolPhi);
     outTree->Branch("particle_dep_energy"  ,       "vector<float>", &particle_dep_energy);
 
-    outTree->Branch("conv_el_primary_photon_idx",  "vector<int>",   &conv_el_fPrimaryPhotonIndex);
-    outTree->Branch("conv_el_q",                   "vector<float>", &conv_el_q);
-    outTree->Branch("conv_el_px",                  "vector<float>", &conv_el_px);
-    outTree->Branch("conv_el_py",                  "vector<float>", &conv_el_py);
-    outTree->Branch("conv_el_pz",                  "vector<float>", &conv_el_pz);
-    outTree->Branch("conv_el_prod_x",              "vector<float>", &conv_el_prod_x);
-    outTree->Branch("conv_el_prod_y",              "vector<float>", &conv_el_prod_y);
-    outTree->Branch("conv_el_prod_z",              "vector<float>", &conv_el_prod_z);
+    Config_reader_var &config_var = Config_reader_var::GetInstance();
+    if ( config_var.Save_convelectrons ) {
+        outTree->Branch("conv_el_primary_photon_idx",  "vector<int>",   &conv_el_fPrimaryPhotonIndex);
+        outTree->Branch("conv_el_q",                   "vector<float>", &conv_el_q);
+        outTree->Branch("conv_el_px",                  "vector<float>", &conv_el_px);
+        outTree->Branch("conv_el_py",                  "vector<float>", &conv_el_py);
+        outTree->Branch("conv_el_pz",                  "vector<float>", &conv_el_pz);
+        outTree->Branch("conv_el_prod_x",              "vector<float>", &conv_el_prod_x);
+        outTree->Branch("conv_el_prod_y",              "vector<float>", &conv_el_prod_y);
+        outTree->Branch("conv_el_prod_z",              "vector<float>", &conv_el_prod_z);
+    }
 }
 
 void Full_trajectory_info_data::SetParticleDepEnergy( const std::vector<float> &_particle_dep_energies) {
