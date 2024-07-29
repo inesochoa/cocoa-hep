@@ -67,8 +67,9 @@ char *CalorimeterConstruction::Name_creation(char *name, int low_layer, int high
 void CalorimeterConstruction::EndCap_Calorimeter()
 {
     
-	long double r_inn                  = geometry.layer_inn_radius_ECAL[0][0];
         long double previous_layers_depths = 0.0;
+		//long double r_inn                  = geometry.layer_inn_radius_ECAL[0][0];
+	long double r_inn                  = config_json_var.r_inn_calo; 
 	int         nPixelsMax             = GetNPixelsMax();
 	long double minDPhi                = GetMinDPhi();
 	long double depth                  = 0.0;
@@ -101,7 +102,14 @@ void CalorimeterConstruction::EndCap_Calorimeter()
 	//
 	// Fill the region between the ECAL and HCAL with iron as support
 	//
-	depth = geometry.layer_inn_radius_HCAL.front().front() - geometry.layer_out_radius_ECAL.back().back();
+	depth = geometry.layer_inn_radius_HCAL.front().front();
+	if ( nLow_Layers == 0 ) {
+		depth -= config_json_var.Layer_gap;
+	} else {
+		depth -= geometry.layer_out_radius_ECAL.back().back();
+	}
+	
+	//depth = geometry.layer_inn_radius_HCAL.front().front() - geometry.layer_out_radius_ECAL.back().back();
 	std::map<int, std::string> direction_name = {
 	    std::make_pair(-1, "backward"),
 	    std::make_pair(1, "forward")
@@ -149,15 +157,15 @@ void CalorimeterConstruction::EndCap_Calorimeter()
 
 void CalorimeterConstruction::Barrel_Calorimeter()
 {
-        long double previous_layers_delta_r = 0.0;
+	long double previous_layers_delta_r = 0.0;
 	int         nLow_Layers             = geometry.number_of_pixels_ECAL.size();
-	int         nPixelsMax              = GetNPixelsMax();
-	long double minDEta                 = 4.0 * config_json_var.max_eta_barrel / nPixelsMax;
-	long double minDPhi                 = GetMinDPhi();
 
 	long double r_inn;
 	long double r_out;
-			
+	int nPixelsMax = GetNPixelsMax();
+	long double minDEta = 4.0 * config_json_var.max_eta_barrel / nPixelsMax;
+	long double minDPhi = GetMinDPhi();
+	
 	//
 	// ECAL barrel
 	//
@@ -190,8 +198,12 @@ void CalorimeterConstruction::Barrel_Calorimeter()
 	//
 	// Fill the region between the ECAL and HCAL with iron as support
 	//
-	r_inn = geometry.layer_out_radius_ECAL.back().back();
 	r_out = geometry.layer_inn_radius_HCAL.front().front();
+	if ( nLow_Layers == 0 ) {
+		r_inn = r_out - config_json_var.Layer_gap;
+	} else {
+		r_inn = geometry.layer_out_radius_ECAL.back().back();
+	}
 	
 	std::map<int, std::string> direction_name = {
 	    std::make_pair(-1, "backward"),
@@ -487,14 +499,22 @@ T CalorimeterConstruction::GetMinOrMax(const std::vector<std::vector<T > >& arra
 } 
 
 int CalorimeterConstruction::GetNPixelsMax() const {
-    int nPixelsMax_ECAL = GetMinOrMax( geometry.number_of_pixels_ECAL, false );
-    int nPixelsMax_HCAL = GetMinOrMax( geometry.number_of_pixels_HCAL, false );
+	int nlayersECAL = geometry.number_of_pixels_ECAL.size();
+	int nlayersHCAL = geometry.number_of_pixels_HCAL.size();
+	int nPixelsMax_ECAL = 0;
+	if (nlayersECAL > 0) nPixelsMax_ECAL = GetMinOrMax( geometry.number_of_pixels_ECAL, false );
+	int nPixelsMax_HCAL = 0;
+    if (nlayersHCAL > 0) nPixelsMax_HCAL = GetMinOrMax( geometry.number_of_pixels_HCAL, false );
     return std::max( nPixelsMax_ECAL, nPixelsMax_HCAL );
 }
 
 long double CalorimeterConstruction::GetMinDPhi() const {
-    long double minDPhi_ECAL = GetMinOrMax( geometry.layer_dphi_ECAL, true );
-    long double minDPhi_HCAL = GetMinOrMax( geometry.layer_dphi_HCAL, true );
+	int nlayersECAL = geometry.number_of_pixels_ECAL.size();
+	int nlayersHCAL = geometry.number_of_pixels_HCAL.size();
+	long double minDPhi_ECAL = 999;
+	if (nlayersECAL > 0) minDPhi_ECAL = GetMinOrMax( geometry.layer_dphi_ECAL, true );
+    long double minDPhi_HCAL = 999;
+    if (nlayersHCAL > 0) minDPhi_HCAL = GetMinOrMax( geometry.layer_dphi_HCAL, true );
     return std::min( minDPhi_ECAL, minDPhi_HCAL );
 }
 
